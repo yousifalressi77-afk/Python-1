@@ -28,7 +28,7 @@ module.exports = {
     // Select Menu
     if (interaction.isStringSelectMenu()) {
       if (interaction.customId === 'ticket-menu') {
-        const config = ticketDB.getTicketConfig(interaction.guildId);
+        const config = await ticketDB.getTicketConfig(interaction.guildId);
         
         if (!config) {
           return await interaction.reply({ content: '❌ نظام التكاتة غير مُعد!', ephemeral: true });
@@ -39,7 +39,7 @@ module.exports = {
           const channel = await interaction.guild.channels.create({
             name: `ticket-${interaction.user.username}-${ticketNumber}`,
             type: ChannelType.GuildText,
-            parent: config.categoryId,
+            parent: config.category_id,
             permissionOverwrites: [
               {
                 id: interaction.guildId,
@@ -50,7 +50,7 @@ module.exports = {
                 allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
               },
               {
-                id: config.viewRoleId,
+                id: config.support_role_id,
                 allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
               }
             ]

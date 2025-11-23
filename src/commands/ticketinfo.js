@@ -7,25 +7,27 @@ module.exports = {
     .setDescription('معلومات نظام التكاتة')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
-    const config = ticketDB.getTicketConfig(interaction.guildId);
+    const config = await ticketDB.getTicketConfig(interaction.guildId);
     
     if (!config) {
       return await interaction.reply({ content: '❌ لم يتم إعداد نظام التكاتة!', ephemeral: true });
     }
 
-    let buttonsText = '';
-    config.buttons.forEach((btn, index) => {
-      buttonsText += `${index + 1}. **${btn.label}**\n`;
-    });
+    let optionsText = '';
+    if (config.options && Array.isArray(config.options)) {
+      config.options.forEach((opt, index) => {
+        optionsText += `${index + 1}. **${opt.label}**\n`;
+      });
+    }
 
     const embed = {
       color: 0x0099ff,
       title: '📋 معلومات نظام التكاتة',
       fields: [
-        { name: 'فئة التكاتة', value: `<#${config.categoryId}>`, inline: false },
-        { name: 'قناة الرسالة', value: `<#${config.messageChannelId}>`, inline: false },
-        { name: 'رتبة الرؤية', value: `<@&${config.viewRoleId}>`, inline: false },
-        { name: 'الأزرار', value: buttonsText || 'لا توجد أزرار', inline: false }
+        { name: 'فئة التكاتة', value: `<#${config.category_id}>`, inline: false },
+        { name: 'قناة الرسالة', value: `<#${config.channel_id}>`, inline: false },
+        { name: 'رتبة الرؤية', value: `<@&${config.support_role_id}>`, inline: false },
+        { name: 'الخيارات', value: optionsText || 'لا توجد خيارات', inline: false }
       ]
     };
 

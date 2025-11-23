@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
+// Initialize Database
+require('./utils/db');
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.DirectMessages] });
 
 client.commands = new Collection();

@@ -21,12 +21,10 @@ module.exports = {
     const optionName = interaction.options.getString('option_name');
 
     const config = {
+      channelId: messageChannel.id,
       categoryId: category.id,
-      messageChannelId: messageChannel.id,
-      openChannelId: openChannel.id,
-      viewRoleId: viewRole.id,
-      message: message,
-      messageId: null,
+      logChannelId: null,
+      supportRoleId: viewRole.id,
       options: [
         {
           value: 'ticket-option-1',
@@ -36,7 +34,7 @@ module.exports = {
       ]
     };
 
-    ticketDB.setupTicketSystem(interaction.guildId, config);
+    await ticketDB.setupTicketSystem(interaction.guildId, config);
 
     const row = new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
@@ -58,7 +56,7 @@ module.exports = {
       });
       
       config.messageId = msg.id;
-      ticketDB.setupTicketSystem(interaction.guildId, config);
+      await ticketDB.setupTicketSystem(interaction.guildId, config);
 
       const embed = {
         color: 0x00ff00,

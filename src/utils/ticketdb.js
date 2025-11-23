@@ -1,79 +1,104 @@
-const fs = require('fs');
-const path = require('path');
+const { pool } = require('./db');
 
-const dbPath = path.join(__dirname, '../../data/tickets.json');
-
-const initTicketDB = () => {
-  if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, JSON.stringify({ servers: {} }, null, 2));
-  }
-};
-
-const getTicketDB = () => {
+const setupTicketSystem = async (guildId, config) => {
   try {
-    const data = fs.readFileSync(dbPath, 'utf8');
-    return JSON.parse(data);
+    const result = await pool.query(
+      `INSERT INTO ticket_config (guild_id, channel_id, category_id, log_channel_id, support_role_id, options)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (guild_id) DO UPDATE SET 
+       channel_id = $2, category_id = $3, log_channel_id = $4, support_role_id = $5, options = $6,
+       updated_at = CURRENT_TIMESTAMP
+       RETURNING *`,
+      [guildId, config.channelId, config.categoryId, config.logChannelId, config.supportRoleId, JSON.stringify(config.options || [])]
+    );
+    return result.rows[0];
   } catch (error) {
-    return { servers: {} };
+    console.error('خطأ في إعداد نظام التكاتة:', error);
+    return null;
   }
 };
 
-const saveTicketDB = (data) => {
+const updateTicketConfig = async (guildId, newConfig) => {
   try {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+    const result = await pool.query(
+      `UPDATE ticket_config SET 
+       channel_id = COALESCE($2, channel_id),
+       category_id = COALESCE($3, category_id),
+       log_channel_id = COALESCE($4, log_channel_id),
+       support_role_id = COALESCE($5, support_role_id),
+       options = COALESCE($6, options),
+       updated_at = CURRENT_TIMESTAMP
+       WHERE guild_id = $1
+       RETURNING *`,
+      [guildId, newConfig.channelId, newConfig.categoryId, newConfig.logChannelId, newConfig.supportRoleId, JSON.stringify(newConfig.options)]
+    );
+    return result.rows[0] || null;
   } catch (error) {
-    console.error('خطأ في حفظ قاعدة البيانات:', error);
+    console.error('خطأ في تحديث إعدادات التكاتة:', error);
+    return null;
   }
 };
 
-const setupTicketSystem = (guildId, config) => {
-  const db = getTicketDB();
-  db.servers[guildId] = config;
-  saveTicketDB(db);
-  return config;
-};
-
-const updateTicketConfig = (guildId, newConfig) => {
-  const db = getTicketDB();
-  if (db.servers[guildId]) {
-    db.servers[guildId] = { ...db.servers[guildId], ...newConfig };
-    saveTicketDB(db);
-    return db.servers[guildId];
-  }
-  return null;
-};
-
-const getTicketConfig = (guildId) => {
-  const db = getTicketDB();
-  return db.servers[guildId] || null;
-};
-
-const createTicket = (guildId, ticketData) => {
-  const db = getTicketDB();
-  if (!db.servers[guildId]) {
-    db.servers[guildId] = {};
-  }
-  if (!db.servers[guildId].tickets) {
-    db.servers[guildId].tickets = [];
-  }
-  db.servers[guildId].tickets.push(ticketData);
-  saveTicketDB(db);
-};
-
-const closeTicket = (guildId, ticketId) => {
-  const db = getTicketDB();
-  if (db.servers[guildId] && db.servers[guildId].tickets) {
-    db.servers[guildId].tickets = db.servers[guildId].tickets.filter(t => t.id !== ticketId);
-    saveTicketDB(db);
+const getTicketConfig = async (guildId) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM ticket_config WHERE guild_id = $1`,
+      [guildId]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('خطأ في الحصول على إعدادات التكاتة:', error);
+    return null;
   }
 };
 
-initTicketDB();
+const createTicket = async (guildId, ticketData) => {
+  try {
+    const result = await pool.query(
+      `INSERT INTO tickets (ticket_id, guild_id, channel_id, user_id, status, category)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [ticketData.id, guildId, ticketData.channelId, ticketData.userId, 'open', ticketData.category]
+    );
+    return result.rows[0];
+  } catch (error) {
+    console.error('خطأ في إنشاء تكتة:', error);
+    return null;
+  }
+};
+
+const closeTicket = async (guildId, ticketId) => {
+  try {
+    await pool.query(
+      `UPDATE tickets SET status = 'closed', closed_at = CURRENT_TIMESTAMP
+       WHERE ticket_id = $1 AND guild_id = $2`,
+      [ticketId, guildId]
+    );
+    return true;
+  } catch (error) {
+    console.error('خطأ في إغلاق التكتة:', error);
+    return false;
+  }
+};
+
+const getTickets = async (guildId) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM tickets WHERE guild_id = $1 AND status = 'open'`,
+      [guildId]
+    );
+    return result.rows;
+  } catch (error) {
+    console.error('خطأ في الحصول على التكاتة:', error);
+    return [];
+  }
+};
 
 module.exports = {
   setupTicketSystem,
   updateTicketConfig,
   getTicketConfig,
   createTicket,
-  closeTicket
+  closeTicket,
+  getTickets
 };
