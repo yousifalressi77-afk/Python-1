@@ -11,6 +11,23 @@ module.exports = {
     const user = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason');
     
+    try {
+      // إرسال رسالة بالخاص للمستخدم
+      const dmEmbed = {
+        color: 0xffaa00,
+        title: '⚠️ تحذير من الإدارة',
+        description: `تم تحذيرك من قبل **${interaction.user.tag}**`,
+        fields: [
+          { name: 'السبب', value: reason, inline: false }
+        ],
+        timestamp: new Date().toISOString()
+      };
+      
+      await user.send({ embeds: [dmEmbed] });
+    } catch (error) {
+      console.log(`تعذر إرسال رسالة خاصة للمستخدم ${user.tag}`);
+    }
+    
     const embed = {
       color: 0xffaa00,
       title: '⚠️ تحذير',
