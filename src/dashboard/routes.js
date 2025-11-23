@@ -9,11 +9,21 @@ try {
 }
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:5000/callback';
+const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 
 if (!CLIENT_ID) {
   console.error('⚠️ WARNING: DISCORD_CLIENT_ID not set!');
 }
+if (!CLIENT_SECRET) {
+  console.error('⚠️ WARNING: DISCORD_CLIENT_SECRET not set!');
+}
+
+// Helper to get redirect URI based on request
+const getRedirectURI = (req) => {
+  const host = req.get('host');
+  const protocol = req.protocol;
+  return `${protocol}://${host}/callback`;
+};
 
 // Middleware: Check if user is authenticated
 const requireAuth = (req, res, next) => {
@@ -30,7 +40,8 @@ router.get('/', (req, res) => {
 
 // Login page
 router.get('/login', (req, res) => {
-  const oauthURL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify+guilds`;
+  const redirectUri = getRedirectURI(req);
+  const oauthURL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify+guilds`;
   
   res.send(`
     <!DOCTYPE html>
@@ -117,19 +128,26 @@ router.get('/callback', async (req, res) => {
   }
 
   try {
+    const redirectUri = getRedirectURI(req);
+    
+    console.log('🔐 OAuth Callback received');
+    console.log('Code:', code);
+    console.log('Redirect URI:', redirectUri);
+    
     // Get access token
     const tokenResponse = await axios.post('https://discord.com/api/oauth2/token',
       new URLSearchParams({
         client_id: CLIENT_ID,
-        client_secret: process.env.DISCORD_CLIENT_SECRET,
+        client_secret: CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: redirectUri,
         scope: 'identify guilds'
       }),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
+    console.log('✅ Access token received');
     const accessToken = tokenResponse.data.access_token;
 
     // Get user data
@@ -138,6 +156,7 @@ router.get('/callback', async (req, res) => {
     });
 
     const user = userResponse.data;
+    console.log('✅ User data received:', user.username);
 
     // Get user guilds
     const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
@@ -145,6 +164,7 @@ router.get('/callback', async (req, res) => {
     });
 
     const guilds = guildsResponse.data;
+    console.log('✅ Guilds received:', guilds.length);
 
     // Store user in session
     req.session.user = {
@@ -158,7 +178,7 @@ router.get('/callback', async (req, res) => {
 
     res.redirect('/dashboard');
   } catch (error) {
-    console.error('OAuth error:', error);
+    console.error('❌ OAuth error:', error.response?.data || error.message);
     res.redirect('/login?error=auth_failed');
   }
 });
