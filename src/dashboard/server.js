@@ -42,8 +42,8 @@ app.get('/api/bot/stats', (req, res) => {
   res.json({
     status: 'success',
     data: {
-      guilds: 42,
-      users: 15000,
+      guilds: 1,
+      users: 50,
       commands: 23,
       uptime: process.uptime(),
       language: 'عربي'

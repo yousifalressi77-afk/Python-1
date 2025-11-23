@@ -107,11 +107,11 @@ router.get('/dashboard', (req, res) => {
       <div class="container">
         <div class="grid">
           <div class="stat-box">
-            <div class="value">42</div>
+            <div class="value">1</div>
             <div class="label">السيرفرات النشطة</div>
           </div>
           <div class="stat-box">
-            <div class="value">15K</div>
+            <div class="value">50</div>
             <div class="label">إجمالي المستخدمين</div>
           </div>
           <div class="stat-box">
@@ -127,9 +127,9 @@ router.get('/dashboard', (req, res) => {
         <div class="grid">
           <div class="card">
             <h3>📊 الإحصائيات السريعة</h3>
-            <p>عدد الرسائل المعالجة: <strong>150K+</strong></p>
-            <p>وقت التشغيل: <strong>45 يوم</strong></p>
-            <p>معدل الأداء: <strong>99.9%</strong></p>
+            <p>عدد الرسائل المعالجة: <strong>1.2K</strong></p>
+            <p>وقت التشغيل: <strong>ساعة واحدة</strong></p>
+            <p>معدل الأداء: <strong>100%</strong></p>
             <div class="button-group">
               <button class="btn btn-primary" onclick="loadStats()">تحديث</button>
             </div>
@@ -258,32 +258,8 @@ router.get('/servers', (req, res) => {
         
         <div class="server-card">
           <div class="server-info">
-            <h3>🏰 Server 1</h3>
-            <p>الأعضاء: 250</p>
-            <p>الحالة: نشط ✅</p>
-          </div>
-          <div class="server-buttons">
-            <button class="btn btn-primary">تفاصيل</button>
-            <button class="btn btn-settings">إعدادات</button>
-          </div>
-        </div>
-
-        <div class="server-card">
-          <div class="server-info">
-            <h3>🏰 Server 2</h3>
-            <p>الأعضاء: 150</p>
-            <p>الحالة: نشط ✅</p>
-          </div>
-          <div class="server-buttons">
-            <button class="btn btn-primary">تفاصيل</button>
-            <button class="btn btn-settings">إعدادات</button>
-          </div>
-        </div>
-
-        <div class="server-card">
-          <div class="server-info">
-            <h3>🏰 Server 3</h3>
-            <p>الأعضاء: 500</p>
+            <h3>🏰 Server Test</h3>
+            <p>الأعضاء: 50</p>
             <p>الحالة: نشط ✅</p>
           </div>
           <div class="server-buttons">
