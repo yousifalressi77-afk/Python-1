@@ -1,3 +1,17 @@
 {
-  "servers": {}
+  "servers": {
+    "1289604952821334107": {
+      "categoryId": "1441521534278565989",
+      "messageChannelId": "1317673007447146579",
+      "viewRoleId": "1441520860702707782",
+      "message": "وت",
+      "buttons": [
+        {
+          "id": "open-ticket-1",
+          "label": "مواح",
+          "color": 1
+        }
+      ]
+    }
+  }
 }

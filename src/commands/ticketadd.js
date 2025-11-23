@@ -1,11 +1,10 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('ticketadd')
     .setDescription('إضافة عضو للتكت (Add member to ticket)')
-    .addUserOption(option => option.setName('user').setDescription('المستخدم').setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+    .addUserOption(option => option.setName('user').setDescription('المستخدم').setRequired(true)),
   async execute(interaction) {
     const user = interaction.options.getUser('user');
     
