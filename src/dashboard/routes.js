@@ -845,4 +845,8 @@ router.get('/server/:guildId/shortcuts', requireAuth, (req, res) => {
   `);
 });
 
+// Include dashboard routes
+const dashboardRoutes = require('./dashboard-routes');
+router.use('/', dashboardRoutes);
+
 module.exports = router;
