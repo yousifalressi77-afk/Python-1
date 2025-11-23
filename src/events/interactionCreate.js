@@ -25,9 +25,9 @@ module.exports = {
       }
     }
 
-    // Buttons
-    if (interaction.isButton()) {
-      if (interaction.customId.startsWith('open-ticket-')) {
+    // Select Menu
+    if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === 'ticket-menu') {
         const config = ticketDB.getTicketConfig(interaction.guildId);
         
         if (!config) {
@@ -59,11 +59,14 @@ module.exports = {
           const ticketEmbed = {
             color: 0x00ff00,
             title: '🎫 تكت جديد',
-            description: `مرحباً ${interaction.user}! هذا تكتك الخاص.`,
+            description: `مرحباً **${interaction.user.tag}**!\n\nشكراً لتواصلك معنا، سنقوم بمساعدتك قريباً.`,
             fields: [
-              { name: 'الفتح بواسطة', value: interaction.user.tag, inline: true },
-              { name: 'الحالة', value: 'مفتوح ✅', inline: true }
+              { name: '👤 الفاتح', value: `${interaction.user}`, inline: true },
+              { name: '⏰ الوقت', value: `<t:${Math.floor(Date.now() / 1000)}:f>`, inline: true },
+              { name: '📝 الخيار', value: interaction.values[0] || 'تكت عام', inline: false },
+              { name: '✅ الحالة', value: 'مفتوح', inline: true }
             ],
+            footer: { text: 'الرجاء انتظار رد الفريق' },
             timestamp: new Date().toISOString()
           };
 
@@ -82,13 +85,17 @@ module.exports = {
           await interaction.reply({ content: '❌ خطأ في فتح التكت!', ephemeral: true });
         }
       }
+    }
 
+    // Buttons
+    if (interaction.isButton()) {
       // Ticket actions
       if (interaction.customId === 'ticket-claim') {
         const embed = {
           color: 0x00ff00,
           title: '✅ تم استقبال التكت',
-          description: `${interaction.user} تولى هذا التكت`
+          description: `${interaction.user} تولى هذا التكت`,
+          timestamp: new Date().toISOString()
         };
         await interaction.reply({ embeds: [embed] });
       }

@@ -33,6 +33,16 @@ const setupTicketSystem = (guildId, config) => {
   return config;
 };
 
+const updateTicketConfig = (guildId, newConfig) => {
+  const db = getTicketDB();
+  if (db.servers[guildId]) {
+    db.servers[guildId] = { ...db.servers[guildId], ...newConfig };
+    saveTicketDB(db);
+    return db.servers[guildId];
+  }
+  return null;
+};
+
 const getTicketConfig = (guildId) => {
   const db = getTicketDB();
   return db.servers[guildId] || null;
@@ -62,6 +72,7 @@ initTicketDB();
 
 module.exports = {
   setupTicketSystem,
+  updateTicketConfig,
   getTicketConfig,
   createTicket,
   closeTicket

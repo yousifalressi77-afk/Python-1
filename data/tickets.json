@@ -10,6 +10,16 @@
           "id": "open-ticket-1",
           "label": "مواح",
           "color": 1
+        },
+        {
+          "id": "open-ticket-2",
+          "label": "عع",
+          "color": 3
+        },
+        {
+          "id": "open-ticket-3",
+          "label": "عع",
+          "color": 3
         }
       ]
     }
