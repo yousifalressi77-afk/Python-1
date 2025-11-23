@@ -3,23 +3,20 @@
     "1289604952821334107": {
       "categoryId": "1441521534278565989",
       "messageChannelId": "1317673007447146579",
+      "openChannelId": "1317673007447146579",
       "viewRoleId": "1441520860702707782",
-      "message": "وت",
-      "buttons": [
+      "message": "الووو",
+      "messageId": "1442196233501282465",
+      "options": [
         {
-          "id": "open-ticket-1",
-          "label": "مواح",
-          "color": 1
+          "value": "ticket-option-1",
+          "label": "تست",
+          "description": "فتح تكت جديد"
         },
         {
-          "id": "open-ticket-2",
-          "label": "عع",
-          "color": 3
-        },
-        {
-          "id": "open-ticket-3",
-          "label": "عع",
-          "color": 3
+          "value": "ticket-option-2",
+          "label": "hhh",
+          "description": "فتح تكت جديد"
         }
       ]
     }
