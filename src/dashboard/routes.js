@@ -1,178 +1,663 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../utils/auth');
+const settingsDB = require('../utils/settingsdb');
+const axios = require('axios');
 
-// الصفحة الرئيسية - الترحيب
-router.get('/', (req, res) => {
-  res.redirect('/dashboard');
-});
+const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const REDIRECT_URI = 'http://localhost:5000/callback';
 
-// الصفحة الرئيسية
-router.get('/dashboard', (req, res) => {
+// Middleware: Check if user is authenticated
+const requireAuth = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  next();
+};
+
+// Login page
+router.get('/login', (req, res) => {
+  const oauthURL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify+guilds`;
+  
   res.send(`
     <!DOCTYPE html>
     <html lang="ar" dir="rtl">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>لوحة التحكم | Bot Dashboard</title>
+      <title>تسجيل الدخول | Bot Dashboard</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .login-container {
+          background: white;
+          border-radius: 15px;
+          padding: 40px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+          text-align: center;
+          max-width: 400px;
+          width: 90%;
+        }
+        .login-container h1 {
+          color: #333;
+          margin-bottom: 10px;
+          font-size: 28px;
+        }
+        .login-container p {
+          color: #666;
+          margin-bottom: 30px;
+          font-size: 14px;
+        }
+        .login-btn {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 12px 30px;
+          border-radius: 25px;
+          font-size: 16px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: 0.3s;
+          text-decoration: none;
+          display: inline-block;
+        }
+        .login-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .info {
+          margin-top: 20px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+          font-size: 12px;
+          color: #999;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="login-container">
+        <h1>🤖 PrimeBot</h1>
+        <p>لوحة التحكم المتقدمة</p>
+        <a href="${oauthURL}" class="login-btn">تسجيل الدخول عبر Discord</a>
+        <div class="info">
+          <p>سيتم نقلك إلى Discord للتحقق من هويتك</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// OAuth Callback
+router.get('/callback', async (req, res) => {
+  const { code } = req.query;
+  
+  if (!code) {
+    return res.redirect('/login?error=no_code');
+  }
+
+  try {
+    // Get access token
+    const tokenResponse = await axios.post('https://discord.com/api/oauth2/token',
+      new URLSearchParams({
+        client_id: CLIENT_ID,
+        client_secret: process.env.DISCORD_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: REDIRECT_URI,
+        scope: 'identify guilds'
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // Get user data
+    const userResponse = await axios.get('https://discord.com/api/users/@me', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const user = userResponse.data;
+
+    // Get user guilds
+    const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const guilds = guildsResponse.data;
+
+    // Store user in session
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      accessToken
+    };
+
+    req.session.guilds = guilds;
+
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('OAuth error:', error);
+    res.redirect('/login?error=auth_failed');
+  }
+});
+
+// Logout
+router.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/login');
+});
+
+// Dashboard main page
+router.get('/dashboard', requireAuth, (req, res) => {
+  const user = req.session.user;
+  const guilds = req.session.guilds || [];
+  
+  const adminGuilds = guilds.filter(g => (g.permissions & 0x8) === 0x8); // Administrator permission
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>لوحة التحكم | PrimeBot</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: #f5f5f5;
           color: #333;
         }
         .navbar {
-          background: rgba(0, 0, 0, 0.8);
+          background: rgba(0, 0, 0, 0.9);
           color: white;
           padding: 15px 30px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         .navbar h1 { font-size: 24px; }
-        .navbar a { color: #fff; text-decoration: none; margin: 0 15px; transition: 0.3s; }
-        .navbar a:hover { color: #5a9fd4; }
-        .container {
-          max-width: 1200px;
-          margin: 30px auto;
-          padding: 0 20px;
+        .nav-links {
+          display: flex;
+          gap: 20px;
+          align-items: center;
         }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card {
+        .nav-links a {
+          color: #fff;
+          text-decoration: none;
+          transition: 0.3s;
+        }
+        .nav-links a:hover { color: #667eea; }
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+        }
+        .logout-btn {
+          background: #ff6b6b;
+          padding: 8px 15px;
+          border-radius: 5px;
+          cursor: pointer;
+          border: none;
+          color: white;
+          transition: 0.3s;
+        }
+        .logout-btn:hover { background: #ff5252; }
+        .container {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+        .stat-card {
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          text-align: center;
+        }
+        .stat-value {
+          font-size: 32px;
+          font-weight: bold;
+          color: #667eea;
+        }
+        .stat-label {
+          font-size: 12px;
+          color: #999;
+          margin-top: 5px;
+        }
+        .guilds-title {
+          font-size: 20px;
+          margin-bottom: 20px;
+          font-weight: bold;
+        }
+        .guilds-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 20px;
+        }
+        .guild-card {
           background: white;
           border-radius: 10px;
           padding: 20px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-          transition: transform 0.3s, box-shadow 0.3s;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          transition: 0.3s;
         }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
-        .card h3 { color: #2a5298; margin-bottom: 15px; border-bottom: 2px solid #2a5298; padding-bottom: 10px; }
-        .stat-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
-        .stat-box .value { font-size: 32px; font-weight: bold; }
-        .stat-box .label { font-size: 14px; opacity: 0.9; margin-top: 5px; }
-        .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .guild-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+        .guild-name {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+        .guild-info {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 15px;
+        }
         .btn {
           padding: 10px 20px;
           border: none;
           border-radius: 5px;
           cursor: pointer;
           transition: 0.3s;
-          font-size: 14px;
           font-weight: bold;
+          text-decoration: none;
+          display: inline-block;
         }
-        .btn-primary { background: #2a5298; color: white; }
-        .btn-primary:hover { background: #1e3c72; }
-        .btn-danger { background: #ff6b6b; color: white; }
-        .btn-danger:hover { background: #ff5252; }
-        .btn-success { background: #51cf66; color: white; }
-        .btn-success:hover { background: #40c057; }
-        .settings-form {
+        .btn-primary {
+          background: #667eea;
+          color: white;
+        }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-secondary {
+          background: #e0e0e0;
+          color: #333;
+        }
+        .btn-secondary:hover { background: #d0d0d0; }
+        .btn-group {
+          display: flex;
+          gap: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="navbar">
+        <h1>🤖 PrimeBot Dashboard</h1>
+        <div class="nav-links">
+          <a href="/dashboard">الرئيسية</a>
+          <a href="/servers">السيرفرات</a>
+          <a href="/commands">الأوامر</a>
+          <div class="user-info">
+            <span>${user.username}</span>
+            <button class="logout-btn" onclick="location.href='/logout'">تسجيل الخروج</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value">${adminGuilds.length}</div>
+            <div class="stat-label">السيرفرات المدارة</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">45</div>
+            <div class="stat-label">الأوامر المتاحة</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">✅</div>
+            <div class="stat-label">حالة البوت</div>
+          </div>
+        </div>
+
+        <div class="guilds-title">🏰 السيرفرات التي أنت أدمن فيها</div>
+        <div class="guilds-grid">
+          ${adminGuilds.map(guild => `
+            <div class="guild-card">
+              <div class="guild-name">${guild.name}</div>
+              <div class="guild-info">
+                ID: ${guild.id}<br>
+                صاحب: ${guild.owner ? '✅' : '❌'}
+              </div>
+              <div class="btn-group">
+                <a href="/server/${guild.id}" class="btn btn-primary">إدارة</a>
+                <a href="/server/${guild.id}/settings" class="btn btn-secondary">إعدادات</a>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// Server management page
+router.get('/server/:guildId', requireAuth, (req, res) => {
+  const { guildId } = req.params;
+  const guilds = req.session.guilds || [];
+  const guild = guilds.find(g => g.id === guildId);
+
+  if (!guild) {
+    return res.status(404).send('السيرفر غير موجود');
+  }
+
+  const settings = settingsDB.getServerSettings(guildId);
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>إدارة ${guild.name} | PrimeBot</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: #f5f5f5;
+          color: #333;
+        }
+        .navbar {
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 15px 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .navbar h1 { font-size: 20px; }
+        .nav-links a {
+          color: #fff;
+          text-decoration: none;
+          margin: 0 15px;
+          transition: 0.3s;
+        }
+        .nav-links a:hover { color: #667eea; }
+        .container {
+          max-width: 1200px;
+          margin: 20px auto;
+          padding: 0 20px;
+        }
+        .sidebar {
+          display: grid;
+          grid-template-columns: 250px 1fr;
+          gap: 20px;
+          margin-bottom: 20px;
+        }
+        .menu {
+          background: white;
+          border-radius: 10px;
+          padding: 20px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .menu a {
+          display: block;
+          padding: 10px 15px;
+          border-radius: 5px;
+          color: #333;
+          text-decoration: none;
+          margin-bottom: 10px;
+          transition: 0.3s;
+        }
+        .menu a:hover {
+          background: #667eea;
+          color: white;
+        }
+        .content {
           background: white;
           border-radius: 10px;
           padding: 30px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-          margin-bottom: 30px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
-        .form-group input, .form-group select, .form-group textarea {
+        .section { margin-bottom: 30px; }
+        .section h2 {
+          color: #667eea;
+          margin-bottom: 20px;
+          border-bottom: 2px solid #667eea;
+          padding-bottom: 10px;
+        }
+        .form-group {
+          margin-bottom: 15px;
+        }
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: bold;
+        }
+        .form-group input, .form-group textarea, .form-group select {
           width: 100%;
           padding: 10px;
           border: 1px solid #ddd;
           border-radius: 5px;
           font-family: inherit;
-          font-size: 14px;
         }
-        .form-group textarea { min-height: 100px; resize: vertical; }
-        .table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
-        .table th { background: #2a5298; color: white; padding: 12px; text-align: right; }
-        .table td { padding: 12px; border-bottom: 1px solid #eee; }
-        .table tr:hover { background: #f5f5f5; }
+        .btn {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: 0.3s;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-danger { background: #ff6b6b; color: white; }
+        .btn-danger:hover { background: #ff5252; }
+        .list-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px;
+          background: #f9f9f9;
+          border-radius: 5px;
+          margin-bottom: 10px;
+        }
+        .list-item .info {
+          flex: 1;
+        }
+        .list-item .actions {
+          display: flex;
+          gap: 10px;
+        }
+        .list-item .btn {
+          padding: 8px 15px;
+          font-size: 12px;
+        }
       </style>
     </head>
     <body>
       <div class="navbar">
-        <h1>🤖 لوحة التحكم</h1>
-        <nav>
+        <h1>🏰 ${guild.name}</h1>
+        <nav class="nav-links">
           <a href="/dashboard">الرئيسية</a>
-          <a href="/servers">السيرفرات</a>
-          <a href="/commands">الأوامر</a>
-          <a href="/settings">الإعدادات</a>
+          <a href="/logout">تسجيل الخروج</a>
         </nav>
       </div>
 
       <div class="container">
-        <div class="grid">
-          <div class="stat-box">
-            <div class="value">1</div>
-            <div class="label">السيرفرات النشطة</div>
-          </div>
-          <div class="stat-box">
-            <div class="value">50</div>
-            <div class="label">إجمالي المستخدمين</div>
-          </div>
-          <div class="stat-box">
-            <div class="value">23</div>
-            <div class="label">الأوامر المتاحة</div>
-          </div>
-          <div class="stat-box">
-            <div class="value">✅</div>
-            <div class="label">حالة النظام</div>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div class="card">
-            <h3>📊 الإحصائيات السريعة</h3>
-            <p>عدد الرسائل المعالجة: <strong>1.2K</strong></p>
-            <p>وقت التشغيل: <strong>ساعة واحدة</strong></p>
-            <p>معدل الأداء: <strong>100%</strong></p>
-            <div class="button-group">
-              <button class="btn btn-primary" onclick="loadStats()">تحديث</button>
-            </div>
+        <div class="sidebar">
+          <div class="menu">
+            <a href="/server/${guildId}">📊 نظرة عامة</a>
+            <a href="/server/${guildId}/settings">⚙️ الإعدادات</a>
+            <a href="/server/${guildId}/auto-replies">🔄 الردود التلقائية</a>
+            <a href="/server/${guildId}/shortcuts">⌨️ الاختصارات</a>
+            <a href="/server/${guildId}/logs">📋 السجلات</a>
           </div>
 
-          <div class="card">
-            <h3>⚡ الأوامر الأخيرة</h3>
-            <table class="table">
-              <tr>
-                <th>الأمر</th>
-                <th>الوقت</th>
-              </tr>
-              <tr>
-                <td>/ban</td>
-                <td>منذ 2 دقيقة</td>
-              </tr>
-              <tr>
-                <td>/mute</td>
-                <td>منذ 5 دقائق</td>
-              </tr>
-              <tr>
-                <td>/warn</td>
-                <td>منذ 10 دقائق</td>
-              </tr>
-            </table>
-          </div>
-
-          <div class="card">
-            <h3>🔧 الإجراءات السريعة</h3>
-            <div class="button-group">
-              <button class="btn btn-primary" onclick="alert('تم إعادة تشغيل البوت')">إعادة تشغيل</button>
-              <button class="btn btn-danger" onclick="alert('تم إيقاف البوت')">إيقاف</button>
-              <button class="btn btn-success" onclick="alert('تم إصلاح الأخطاء')">إصلاح</button>
+          <div class="content">
+            <h2>📊 نظرة عامة</h2>
+            <div class="section">
+              <p><strong>اسم السيرفر:</strong> ${guild.name}</p>
+              <p><strong>ID:</strong> ${guild.id}</p>
+              <p><strong>حالة البوت:</strong> <span style="color: green;">✅ نشط</span></p>
             </div>
           </div>
         </div>
       </div>
+    </body>
+    </html>
+  `);
+});
+
+// Auto-replies management
+router.get('/server/:guildId/auto-replies', requireAuth, (req, res) => {
+  const { guildId } = req.params;
+  const settings = settingsDB.getServerSettings(guildId);
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <title>الردود التلقائية | PrimeBot</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: #f5f5f5;
+          color: #333;
+        }
+        .navbar {
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 15px 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .container {
+          max-width: 1000px;
+          margin: 20px auto;
+          padding: 0 20px;
+        }
+        .card {
+          background: white;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          margin-bottom: 20px;
+        }
+        h2 { color: #667eea; margin-bottom: 20px; }
+        .form-group {
+          margin-bottom: 15px;
+        }
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: bold;
+        }
+        .form-group input, .form-group textarea {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          font-family: inherit;
+        }
+        .btn {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-weight: bold;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-danger { background: #ff6b6b; color: white; }
+        .reply-item {
+          background: #f9f9f9;
+          padding: 15px;
+          border-radius: 5px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .reply-content {
+          flex: 1;
+        }
+        .reply-content p {
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        .reply-trigger {
+          font-weight: bold;
+          color: #667eea;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="navbar">
+        <h1>🔄 الردود التلقائية</h1>
+        <a href="/dashboard" style="color: white; text-decoration: none;">العودة</a>
+      </div>
+
+      <div class="container">
+        <div class="card">
+          <h2>إضافة رد تلقائي جديد</h2>
+          <form id="addReplyForm">
+            <div class="form-group">
+              <label>النص المثير (Trigger):</label>
+              <input type="text" name="trigger" placeholder="مثال: hello" required>
+            </div>
+            <div class="form-group">
+              <label>الرد (Response):</label>
+              <textarea name="response" placeholder="مثال: مرحباً!" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">إضافة</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>الردود التلقائية الموجودة (${settings.autoReplies.length})</h2>
+          ${settings.autoReplies.map(reply => `
+            <div class="reply-item">
+              <div class="reply-content">
+                <p class="reply-trigger">Trigger: ${reply.trigger}</p>
+                <p>Response: ${reply.response}</p>
+              </div>
+              <button class="btn btn-danger" onclick="deleteReply(${reply.id})">حذف</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
 
       <script>
-        function loadStats() {
-          fetch('/api/bot/stats')
-            .then(r => r.json())
-            .then(d => console.log('Stats:', d));
+        const guildId = '${guildId}';
+        document.getElementById('addReplyForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          await fetch(\`/api/server/\${guildId}/auto-replies\`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+          });
+          location.reload();
+        });
+
+        async function deleteReply(id) {
+          if (confirm('هل تريد حذف هذا الرد؟')) {
+            await fetch(\`/api/server/\${guildId}/auto-replies/\${id}\`, { method: 'DELETE' });
+            location.reload();
+          }
         }
       </script>
     </body>
@@ -180,394 +665,181 @@ router.get('/dashboard', (req, res) => {
   `);
 });
 
-// صفحة السيرفرات
-router.get('/servers', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>السيرفرات | Bot Dashboard</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-          min-height: 100vh;
-          color: #333;
-        }
-        .navbar {
-          background: rgba(0, 0, 0, 0.8);
-          color: white;
-          padding: 15px 30px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-        .navbar h1 { font-size: 24px; }
-        .navbar a { color: #fff; text-decoration: none; margin: 0 15px; transition: 0.3s; }
-        .navbar a:hover { color: #5a9fd4; }
-        .container {
-          max-width: 1200px;
-          margin: 30px auto;
-          padding: 0 20px;
-        }
-        .server-card {
-          background: white;
-          border-radius: 10px;
-          padding: 20px;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .server-info h3 { color: #2a5298; margin-bottom: 10px; }
-        .server-info p { color: #666; font-size: 14px; margin-bottom: 5px; }
-        .server-buttons { display: flex; gap: 10px; }
-        .btn {
-          padding: 8px 15px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: 0.3s;
-          font-size: 13px;
-          font-weight: bold;
-        }
-        .btn-primary { background: #2a5298; color: white; }
-        .btn-primary:hover { background: #1e3c72; }
-        .btn-settings { background: #667eea; color: white; }
-        .btn-settings:hover { background: #5568d3; }
-      </style>
-    </head>
-    <body>
-      <div class="navbar">
-        <h1>🤖 لوحة التحكم</h1>
-        <nav>
-          <a href="/dashboard">الرئيسية</a>
-          <a href="/servers">السيرفرات</a>
-          <a href="/commands">الأوامر</a>
-          <a href="/settings">الإعدادات</a>
-        </nav>
-      </div>
+// API: Add auto-reply
+router.post('/api/server/:guildId/auto-replies', (req, res) => {
+  const { guildId } = req.params;
+  const { trigger, response } = req.body;
 
-      <div class="container">
-        <h2 style="color: white; margin-bottom: 20px;">📋 السيرفرات المدارة</h2>
-        
-        <div class="server-card">
-          <div class="server-info">
-            <h3>🏰 Server Test</h3>
-            <p>الأعضاء: 50</p>
-            <p>الحالة: نشط ✅</p>
-          </div>
-          <div class="server-buttons">
-            <button class="btn btn-primary">تفاصيل</button>
-            <button class="btn btn-settings">إعدادات</button>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `);
+  settingsDB.addAutoReply(guildId, trigger, response);
+  res.json({ success: true });
 });
 
-// صفحة الأوامر
-router.get('/commands', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>الأوامر | Bot Dashboard</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-          min-height: 100vh;
-          color: #333;
-        }
-        .navbar {
-          background: rgba(0, 0, 0, 0.8);
-          color: white;
-          padding: 15px 30px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-        .navbar h1 { font-size: 24px; }
-        .navbar a { color: #fff; text-decoration: none; margin: 0 15px; transition: 0.3s; }
-        .navbar a:hover { color: #5a9fd4; }
-        .container {
-          max-width: 1200px;
-          margin: 30px auto;
-          padding: 0 20px;
-        }
-        .filter-box {
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        .filter-box input {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          font-size: 14px;
-        }
-        .commands-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 20px;
-        }
-        .command-card {
-          background: white;
-          border-radius: 8px;
-          padding: 20px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-          border-right: 4px solid #667eea;
-        }
-        .command-card h3 { color: #2a5298; margin-bottom: 10px; }
-        .command-card p { color: #666; font-size: 14px; margin-bottom: 10px; }
-        .category { display: inline-block; background: #e9ecef; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        .toggle-btn {
-          width: 50px;
-          height: 24px;
-          background: #ddd;
-          border: none;
-          border-radius: 12px;
-          cursor: pointer;
-          margin-top: 10px;
-          transition: 0.3s;
-        }
-        .toggle-btn.active { background: #51cf66; }
-      </style>
-    </head>
-    <body>
-      <div class="navbar">
-        <h1>🤖 لوحة التحكم</h1>
-        <nav>
-          <a href="/dashboard">الرئيسية</a>
-          <a href="/servers">السيرفرات</a>
-          <a href="/commands">الأوامر</a>
-          <a href="/settings">الإعدادات</a>
-        </nav>
-      </div>
-
-      <div class="container">
-        <h2 style="color: white; margin-bottom: 20px;">⚡ الأوامر المتاحة</h2>
-        
-        <div class="filter-box">
-          <input type="text" placeholder="🔍 ابحث عن أمر...">
-        </div>
-
-        <div class="commands-grid">
-          <div class="command-card">
-            <h3>/ban</h3>
-            <p>حظر مستخدم من السيرفر</p>
-            <span class="category">إدارة</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/kick</h3>
-            <p>طرد مستخدم من السيرفر</p>
-            <span class="category">إدارة</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/mute</h3>
-            <p>إسكات مستخدم مؤقتاً</p>
-            <span class="category">إدارة</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/warn</h3>
-            <p>تحذير مستخدم</p>
-            <span class="category">إدارة</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/credits</h3>
-            <p>فحص رصيد الكريدت</p>
-            <span class="category">اقتصادي</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/balance</h3>
-            <p>فحص الرصيد المالي</p>
-            <span class="category">اقتصادي</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/help</h3>
-            <p>عرض المساعدة والأوامر</p>
-            <span class="category">عام</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-
-          <div class="command-card">
-            <h3>/ping</h3>
-            <p>فحص سرعة البوت</p>
-            <span class="category">عام</span>
-            <button class="toggle-btn active" onclick="this.classList.toggle('active')"></button>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `);
+// API: Delete auto-reply
+router.delete('/api/server/:guildId/auto-replies/:id', (req, res) => {
+  const { guildId, id } = req.params;
+  settingsDB.deleteAutoReply(guildId, parseInt(id));
+  res.json({ success: true });
 });
 
-// صفحة الإعدادات
-router.get('/settings', (req, res) => {
+// API: Add shortcut
+router.post('/api/server/:guildId/shortcuts', (req, res) => {
+  const { guildId } = req.params;
+  const { name, command } = req.body;
+
+  settingsDB.addShortcut(guildId, name, command);
+  res.json({ success: true });
+});
+
+// API: Delete shortcut
+router.delete('/api/server/:guildId/shortcuts/:id', (req, res) => {
+  const { guildId, id } = req.params;
+  settingsDB.deleteShortcut(guildId, parseInt(id));
+  res.json({ success: true });
+});
+
+// Shortcuts page
+router.get('/server/:guildId/shortcuts', requireAuth, (req, res) => {
+  const { guildId } = req.params;
+  const settings = settingsDB.getServerSettings(guildId);
+
   res.send(`
     <!DOCTYPE html>
     <html lang="ar" dir="rtl">
     <head>
       <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>الإعدادات | Bot Dashboard</title>
+      <title>الاختصارات | PrimeBot</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-          min-height: 100vh;
+          background: #f5f5f5;
           color: #333;
         }
         .navbar {
-          background: rgba(0, 0, 0, 0.8);
+          background: rgba(0, 0, 0, 0.9);
           color: white;
           padding: 15px 30px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
-        .navbar h1 { font-size: 24px; }
-        .navbar a { color: #fff; text-decoration: none; margin: 0 15px; transition: 0.3s; }
-        .navbar a:hover { color: #5a9fd4; }
         .container {
-          max-width: 900px;
-          margin: 30px auto;
+          max-width: 1000px;
+          margin: 20px auto;
           padding: 0 20px;
         }
-        .settings-form {
+        .card {
           background: white;
           border-radius: 10px;
           padding: 30px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          margin-bottom: 20px;
         }
+        h2 { color: #667eea; margin-bottom: 20px; }
         .form-group {
-          margin-bottom: 25px;
+          margin-bottom: 15px;
         }
         .form-group label {
           display: block;
           margin-bottom: 8px;
           font-weight: bold;
-          color: #2a5298;
         }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group input, .form-group textarea {
           width: 100%;
-          padding: 12px;
+          padding: 10px;
           border: 1px solid #ddd;
           border-radius: 5px;
           font-family: inherit;
-          font-size: 14px;
-        }
-        .form-group textarea { min-height: 100px; }
-        .button-group {
-          display: flex;
-          gap: 10px;
-          margin-top: 20px;
         }
         .btn {
-          padding: 12px 30px;
+          padding: 10px 20px;
           border: none;
           border-radius: 5px;
           cursor: pointer;
           font-weight: bold;
-          transition: 0.3s;
-          font-size: 14px;
         }
-        .btn-save { background: #51cf66; color: white; }
-        .btn-save:hover { background: #40c057; }
-        .btn-reset { background: #adb5bd; color: white; }
-        .btn-reset:hover { background: #868e96; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-danger { background: #ff6b6b; color: white; }
+        .shortcut-item {
+          background: #f9f9f9;
+          padding: 15px;
+          border-radius: 5px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .shortcut-content {
+          flex: 1;
+        }
+        .shortcut-name {
+          font-weight: bold;
+          color: #667eea;
+          font-size: 16px;
+        }
+        .shortcut-command {
+          color: #666;
+          font-size: 14px;
+          margin-top: 5px;
+        }
       </style>
     </head>
     <body>
       <div class="navbar">
-        <h1>🤖 لوحة التحكم</h1>
-        <nav>
-          <a href="/dashboard">الرئيسية</a>
-          <a href="/servers">السيرفرات</a>
-          <a href="/commands">الأوامر</a>
-          <a href="/settings">الإعدادات</a>
-        </nav>
+        <h1>⌨️ الاختصارات</h1>
+        <a href="/dashboard" style="color: white; text-decoration: none;">العودة</a>
       </div>
 
       <div class="container">
-        <h2 style="color: white; margin-bottom: 20px;">⚙️ إعدادات البوت</h2>
-        
-        <form class="settings-form">
-          <div class="form-group">
-            <label>اسم البوت</label>
-            <input type="text" value="Bot Name" readonly>
-          </div>
+        <div class="card">
+          <h2>إضافة اختصار جديد</h2>
+          <form id="addShortcutForm">
+            <div class="form-group">
+              <label>اسم الاختصار:</label>
+              <input type="text" name="name" placeholder="مثال: !hi" required>
+            </div>
+            <div class="form-group">
+              <label>الأمر (Command):</label>
+              <textarea name="command" placeholder="مثال: /help" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">إضافة</button>
+          </form>
+        </div>
 
-          <div class="form-group">
-            <label>البادئة (Prefix)</label>
-            <input type="text" value="!" placeholder="أدخل البادئة">
-          </div>
-
-          <div class="form-group">
-            <label>رسالة الترحيب</label>
-            <textarea placeholder="أدخل رسالة الترحيب للأعضاء الجدد..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>قناة السجلات</label>
-            <select>
-              <option>اختر قناة</option>
-              <option>#logs</option>
-              <option>#admin-logs</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>تفعيل الحماية</label>
-            <select>
-              <option>قيد التشغيل</option>
-              <option>قيد الإيقاف</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>الأدوار المحظورة</label>
-            <textarea placeholder="أدخل أسماء الأدوار المحظورة..."></textarea>
-          </div>
-
-          <div class="button-group">
-            <button type="submit" class="btn btn-save">💾 حفظ الإعدادات</button>
-            <button type="reset" class="btn btn-reset">🔄 إعادة تعيين</button>
-          </div>
-        </form>
+        <div class="card">
+          <h2>الاختصارات الموجودة (${settings.shortcuts.length})</h2>
+          ${settings.shortcuts.map(shortcut => `
+            <div class="shortcut-item">
+              <div class="shortcut-content">
+                <div class="shortcut-name">${shortcut.name}</div>
+                <div class="shortcut-command">${shortcut.command}</div>
+              </div>
+              <button class="btn btn-danger" onclick="deleteShortcut(${shortcut.id})">حذف</button>
+            </div>
+          `).join('')}
+        </div>
       </div>
+
+      <script>
+        const guildId = '${guildId}';
+        document.getElementById('addShortcutForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          await fetch(\`/api/server/\${guildId}/shortcuts\`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+          });
+          location.reload();
+        });
+
+        async function deleteShortcut(id) {
+          if (confirm('هل تريد حذف هذا الاختصار؟')) {
+            await fetch(\`/api/server/\${guildId}/shortcuts/\${id}\`, { method: 'DELETE' });
+            location.reload();
+          }
+        }
+      </script>
     </body>
     </html>
   `);
