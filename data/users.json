@@ -3,10 +3,18 @@
     {
       "userId": "1004948341769121803",
       "username": "32xl",
-      "credits": 1000000000,
+      "credits": 950000000,
       "balance": 0,
       "warnings": 0,
       "createdAt": "2025-11-23T16:19:01.137Z"
+    },
+    {
+      "userId": "1261042157058261074",
+      "username": "7c1m",
+      "credits": 50000000,
+      "balance": 0,
+      "warnings": 0,
+      "createdAt": "2025-11-23T16:23:31.646Z"
     }
   ]
 }
