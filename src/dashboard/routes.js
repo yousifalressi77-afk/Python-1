@@ -1,11 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../utils/auth');
-const settingsDB = require('../utils/settingsdb');
 const axios = require('axios');
 
+try {
+  const settingsDB = require('../utils/settingsdb');
+} catch(e) {
+  console.log('Warning: settingsDB not loaded');
+}
+
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-const REDIRECT_URI = 'http://localhost:5000/callback';
+const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:5000/callback';
+
+if (!CLIENT_ID) {
+  console.error('⚠️ WARNING: DISCORD_CLIENT_ID not set!');
+}
 
 // Middleware: Check if user is authenticated
 const requireAuth = (req, res, next) => {
@@ -14,6 +22,11 @@ const requireAuth = (req, res, next) => {
   }
   next();
 };
+
+// Home redirect
+router.get('/', (req, res) => {
+  res.redirect('/login');
+});
 
 // Login page
 router.get('/login', (req, res) => {
