@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
+// الصفحة الرئيسية - الترحيب
+router.get('/', (req, res) => {
+  res.redirect('/dashboard');
+});
+
 // الصفحة الرئيسية
 router.get('/dashboard', (req, res) => {
   res.send(`
