@@ -1,29 +1,35 @@
 const { SlashCommandBuilder } = require('discord.js');
+const db = require('../utils/database');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('balance')
-    .setDescription('Check your account balance'),
+    .setDescription('فحص الرصيد (Check your account balance)'),
   async execute(interaction) {
-    const balance = Math.floor(Math.random() * 5000) + 100;
+    const user = interaction.user;
+    let userData = db.getUser(user.id);
+    
+    if (!userData) {
+      userData = db.createUser(user.id, user.tag);
+    }
     
     const balanceEmbed = {
       color: 0x0099ff,
-      title: '💰 رصيدك (Your Balance)',
+      title: '💰 رصيدك',
       fields: [
         {
-          name: 'المستخدم (User)',
-          value: `<@${interaction.user.id}>`,
+          name: 'المستخدم',
+          value: user.tag,
           inline: true
         },
         {
-          name: 'الرصيد (Balance)',
-          value: `$${balance}`,
+          name: 'الرصيد',
+          value: `$${userData.balance}`,
           inline: true
         }
       ],
       thumbnail: {
-        url: interaction.user.displayAvatarURL()
+        url: user.displayAvatarURL()
       },
       timestamp: new Date().toISOString()
     };

@@ -39,5 +39,21 @@ module.exports = {
     };
     
     await interaction.reply({ embeds: [embed] });
+    
+    // إرسال رسالة بالخاص للمتلقي
+    try {
+      const dmEmbed = {
+        color: 0x00ff00,
+        title: '💳 تحويل كريدت جديد',
+        description: `تلقيت **${amount}** كريدت من **${sender.tag}**`,
+        fields: [
+          { name: 'كريدتك الجديد', value: `${updatedReceiver.credits}` }
+        ],
+        timestamp: new Date().toISOString()
+      };
+      await user.send({ embeds: [dmEmbed] });
+    } catch (error) {
+      console.log(`تعذر إرسال رسالة خاصة للمستخدم ${user.tag}`);
+    }
   }
 };
