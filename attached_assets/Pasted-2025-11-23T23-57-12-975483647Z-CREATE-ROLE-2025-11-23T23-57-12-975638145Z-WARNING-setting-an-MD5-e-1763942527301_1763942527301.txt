@@ -1,0 +1,107 @@
+2025-11-23T23:57:12.975483647Z CREATE ROLE
+2025-11-23T23:57:12.975638145Z WARNING:  setting an MD5-encrypted password
+2025-11-23T23:57:12.975643125Z DETAIL:  MD5 password support is deprecated and will be removed in a future release of PostgreSQL.
+2025-11-23T23:57:12.975646555Z HINT:  Refer to the PostgreSQL documentation for details about migrating to another password type.
+2025-11-23T23:57:12.976859499Z CREATE ROLE
+2025-11-23T23:57:12.980690169Z CREATE TABLE
+2025-11-23T23:57:12.981872821Z GRANT
+2025-11-23T23:57:13.680196417Z CREATE DATABASE
+2025-11-23T23:57:13.681584559Z ALTER DATABASE
+2025-11-23T23:57:13.774375209Z You are now connected to database "primebot" as user "postgres".
+2025-11-23T23:57:13.777937235Z ALTER SCHEMA
+2025-11-23T23:57:13.873340841Z DO
+2025-11-23T23:57:13.875111293Z DO
+2025-11-23T23:57:13.971194425Z DO
+2025-11-23T23:57:14.199646124Z DO
+2025-11-23T23:57:14.375759378Z DO
+2025-11-23T23:57:14.377657757Z GRANT ROLE
+2025-11-23T23:57:14.37943124Z GRANT
+2025-11-23T23:57:14.471284951Z Sun Nov 23 11:57:14 PM UTC 2025 INFO: Stopping database after primary initialization..
+2025-11-23T23:57:14.876025103Z waiting for server to shut down.... done
+2025-11-23T23:57:14.876073656Z server stopped
+2025-11-23T23:57:14.881458087Z Sun Nov 23 11:57:14 PM UTC 2025 INFO: Custom /opt/cpm/conf/postgresql.conf detected.  Applying custom configuration..
+2025-11-23T23:57:14.969967113Z Sun Nov 23 11:57:14 PM UTC 2025 INFO: Custom /opt/cpm/conf/pg_hba.conf detected.  Applying custom configuration..
+2025-11-23T23:57:15.07819812Z Sun Nov 23 11:57:15 PM UTC 2025 INFO: Setting max connections to 100
+2025-11-23T23:57:15.172758391Z Sun Nov 23 11:57:15 PM UTC 2025 INFO: Setting shared buffers to 128MB
+2025-11-23T23:57:15.176827954Z Sun Nov 23 11:57:15 PM UTC 2025 INFO: Setting work_mem to 2MB
+2025-11-23T23:57:18.378145132Z ..+...+....+.........+.........+......+..+.......+..+...+......+.+.........+..+....+...+...+.........+.........+..+.......+..+.+...+..+....+.....+....+.........+......+..+...+......+.+.........+.....+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+........+...+.+...+.....+.............+..............+......+.........+.+.......................+....+.....+.+..+....+........+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.....................+.......+..+......+.......+......+..+...+....+..+....+..+.........+.........+.+...+......+......+...+.....+.+.....+.......+...+..+.........+...+...........................+....+...........................+..+...+.............+......+..............+....+..+...+......+.......+...+.....+....+.....+.+...........+......+.............+.....+.........+......+.+.....+...+......+.+.....+......+.......+......+.........+........+.........+...+...............+...+.......+...+........+.+.....+....+......+......+.....+...+..........+.....+....+............+...+..+.........+.......+.....+....+......+.......................+.+...........+....+...+...+........+............+....+...+..+..........+...+......+..+...+....+.....+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2025-11-23T23:57:20.072271891Z ..+..........+..+......+...+.........+.+.........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+.+.....+.........+......................+.....+...+............+.......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+...........+....+...+......+.....+...............+.......+..+...+.............+.....................+.....+......+...+....+.....+......+.......+........+............+.......+..+...+...+....+...........+.......+..+..........+...+..+......+....+.........+..+.......+.....+..................+...+....+........+...+....+..+.+............+...+.....+.............+.........+.................+...+.+.....+.+......+..+.+.........+..+...................+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2025-11-23T23:57:20.075873139Z -----
+2025-11-23T23:57:20.17405551Z Sun Nov 23 11:57:20 PM UTC 2025 INFO: Starting PostgreSQL..
+2025-11-23T23:57:20.270844689Z Datadog setup.sh
+2025-11-23T23:57:20.27086943Z Datadog setup.sh: No Datadog config. Skipping Datadog setup.
+2025-11-23T23:57:20.273485567Z PostgreSQL socket not yet available. Retrying in 1 seconds..
+2025-11-23T23:57:20.476824324Z [69239f60.8a-1] user=,db=,app=,client=,LOG:  pgaudit extension initialized
+2025-11-23T23:57:21.17438889Z [69239f60.8a-2] user=,db=,app=,client=,LOG:  starting PostgreSQL 18.1 (Debian 18.1-1.pgdg12+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit
+2025-11-23T23:57:21.174654664Z [69239f60.8a-3] user=,db=,app=,client=,LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-11-23T23:57:21.174672525Z [69239f60.8a-4] user=,db=,app=,client=,LOG:  listening on IPv6 address "::", port 5432
+2025-11-23T23:57:21.178040641Z [69239f60.8a-5] user=,db=,app=,client=,LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2025-11-23T23:57:21.271325986Z [69239f61.95-1] user=,db=,app=,client=,LOG:  database system was shut down at 2025-11-23 23:57:14 UTC
+2025-11-23T23:57:21.380722924Z [69239f60.8a-6] user=,db=,app=,client=,LOG:  database system is ready to accept connections
+2025-11-23T23:57:21.477079879Z [69239f61.9b-1] user=[unknown],db=[unknown],app=[unknown],client=[local],LOG:  connection received: host=[local]
+2025-11-23T23:57:21.477912033Z [69239f61.99-1] user=,db=,app=,client=,LOG:  TimescaleDB background worker launcher connected to shared catalogs
+2025-11-23T23:57:22.071487785Z [69239f61.9f-1] user=[unknown],db=[unknown],app=[unknown],client=[local],LOG:  connection received: host=[local]
+2025-11-23T23:57:22.074790237Z WARNING:  setting an MD5-encrypted password
+2025-11-23T23:57:22.074797538Z DETAIL:  MD5 password support is deprecated and will be removed in a future release of PostgreSQL.
+2025-11-23T23:57:22.074800227Z HINT:  Refer to the PostgreSQL documentation for details about migrating to another password type.
+2025-11-23T23:57:35.2729544Z [69239f6f.aa-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=48038
+2025-11-23T23:57:35.274038277Z [69239f6f.ab-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=48050
+2025-11-23T23:57:35.678189478Z [69239f6f.ac-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=48056
+2025-11-23T23:57:35.776516477Z [69239f6f.ac-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-23T23:57:35.777067596Z [69239f6f.ac-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-23T23:57:38.871578441Z [69239f6f.ac-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.193 user=postgres database=primebot host=10.23.92.13 port=48056
+2025-11-23T23:57:54.495565646Z [69239f82.c0-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=51516
+2025-11-23T23:57:54.497680657Z [69239f82.c1-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=51526
+2025-11-23T23:57:54.584652722Z [69239f82.c2-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=51536
+2025-11-23T23:57:54.685247719Z [69239f82.c2-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-23T23:57:54.685377636Z [69239f82.c2-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-23T23:57:57.775316111Z [69239f82.c2-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.190 user=postgres database=primebot host=10.23.92.13 port=51536
+2025-11-23T23:58:21.569973978Z [69239f9d.df-1] user=,db=,app=,client=,LOG:  automatic analyze of table "template1.information_schema.sql_features"
+2025-11-23T23:58:21.570038442Z 	avg read rate: 6.413 MB/s, avg write rate: 1.516 MB/s
+2025-11-23T23:58:21.570046002Z 	buffer usage: 239 hits, 55 reads, 13 dirtied
+2025-11-23T23:58:21.570050932Z 	WAL usage: 32 records, 10 full page images, 67725 bytes, 0 buffers full
+2025-11-23T23:58:21.570055642Z 	system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.06 s
+2025-11-23T23:58:35.273561379Z [69239fab.e8-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=55828
+2025-11-23T23:58:35.27433801Z [69239fab.e9-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=55836
+2025-11-23T23:58:35.67350043Z [69239fab.ea-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=55848
+2025-11-23T23:58:35.779529232Z [69239fab.ea-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-23T23:58:35.779564573Z [69239fab.ea-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-23T23:58:38.788967547Z [69239fab.ea-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.116 user=postgres database=primebot host=10.23.92.13 port=55848
+2025-11-23T23:58:54.501847159Z [69239fbe.ff-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=55604
+2025-11-23T23:58:54.50186885Z [69239fbe.fe-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=55600
+2025-11-23T23:58:54.873754705Z [69239fbe.100-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=55616
+2025-11-23T23:58:54.978264237Z [69239fbe.100-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-23T23:58:54.978303339Z [69239fbe.100-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-23T23:58:57.987792956Z [69239fbe.100-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.114 user=postgres database=primebot host=10.23.92.13 port=55616
+2025-11-23T23:59:35.272358623Z [69239fe7.125-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=38818
+2025-11-23T23:59:35.273788378Z [69239fe7.126-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=38826
+2025-11-23T23:59:35.473817191Z [69239fe7.127-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=38838
+2025-11-23T23:59:35.573971035Z [69239fe7.127-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-23T23:59:35.575116695Z [69239fe7.127-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-23T23:59:38.580117185Z [69239fe7.127-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.105 user=postgres database=primebot host=10.23.92.13 port=38838
+2025-11-23T23:59:54.496151715Z [69239ffa.13b-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=45500
+2025-11-23T23:59:54.503546462Z [69239ffa.13c-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=45510
+2025-11-23T23:59:54.674800351Z [69239ffa.13d-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=45522
+2025-11-23T23:59:54.774323102Z [69239ffa.13d-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-23T23:59:54.774432088Z [69239ffa.13d-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-23T23:59:57.778431814Z [69239ffa.13d-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.106 user=postgres database=primebot host=10.23.92.13 port=45522
+2025-11-24T00:00:10.476013736Z [6923a00a.157-1] user=[unknown],db=[unknown],app=[unknown],client=[local],LOG:  connection received: host=[local]
+2025-11-24T00:00:35.274427857Z [6923a023.16b-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=44712
+2025-11-24T00:00:35.274496361Z [6923a023.16c-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=44724
+2025-11-24T00:00:35.574644256Z [6923a023.16d-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=44736
+2025-11-24T00:00:35.775665021Z [6923a023.16d-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-24T00:00:35.775725144Z [6923a023.16d-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-24T00:00:38.779059573Z [6923a023.16d-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.203 user=postgres database=primebot host=10.23.92.13 port=44736
+2025-11-24T00:00:54.498420437Z [6923a036.181-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=48336
+2025-11-24T00:00:54.501435665Z [6923a036.182-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=48340
+2025-11-24T00:00:55.076356219Z [6923a037.189-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=48350
+2025-11-24T00:00:55.271224583Z [6923a037.189-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-24T00:00:55.271250484Z [6923a037.189-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-24T00:00:55.675822356Z [6923a037.18a-1] user=[unknown],db=[unknown],app=[unknown],client=[local],LOG:  connection received: host=[local]
+2025-11-24T00:00:58.275156642Z [6923a037.189-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.199 user=postgres database=primebot host=10.23.92.13 port=48350
+2025-11-24T00:01:35.274735409Z [6923a05f.1b0-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=40534
+2025-11-24T00:01:35.276254808Z [6923a05f.1b1-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=40542
+2025-11-24T00:01:35.771400153Z [6923a05f.1b2-1] user=[unknown],db=[unknown],app=[unknown],client=10.23.92.13,LOG:  connection received: host=10.23.92.13 port=40552
+2025-11-24T00:01:35.777607918Z [6923a05f.1b2-2] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authenticated: identity="postgres" method=md5 (/pgdata/dpg-d4hpuf75r7bs73c1lnvg-a/pg_hba.conf:88)
+2025-11-24T00:01:35.777629649Z [6923a05f.1b2-3] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  connection authorized: user=postgres database=primebot SSL enabled (protocol=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384, bits=256)
+2025-11-24T00:01:38.781110192Z [6923a05f.1b2-4] user=postgres,db=primebot,app=[unknown],client=10.23.92.13,LOG:  disconnection: session time: 0:00:03.010 user=postgres database=primebot host=10.23.92.13 port=40552
