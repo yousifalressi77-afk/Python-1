@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/dashboard/server.js",
     "bot": "node src/bot.js",
+    "deploy": "node src/deploy-commands.js",
     "dev": "node src/dashboard/server.js"
   },
   "keywords": [
